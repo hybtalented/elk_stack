@@ -1,0 +1,6 @@
+FROM mydocker:5000/mylogstash:1.0
+
+ENV LS_JAVA_OPTS -Xms200m -Xmx200m
+RUN logstash-plugin install logstash-filter-mutate
+
+

@@ -1,0 +1,5 @@
+http.host: 0.0.0.0
+xpack.monitoring.elasticsearch.password: "802483"
+xpack.monitoring.elasticsearch.url: http://47.110.71.66:9200
+xpack.monitoring.elasticsearch.username: treefrog-log
+xpack.monitoring.enabled: true

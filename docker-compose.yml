@@ -1,0 +1,23 @@
+version: '3.2'
+
+services:
+    logstash:
+        image: mydocker:5000/mylogstash
+        command: logstash -f /etc/logstash/conf.d/logstash.conf --config.reload.automatic
+        volumes:
+            - ./logstash/logstash.conf:/etc/logstash/conf.d/logstash.conf
+            - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+            - ./logstash/log:/tmp
+            - ./logstash/data:/usr/share/logstash/data
+            - ./logstash/jvm.options:/usr/share/logstash/config/jvm.options
+            - /home/hybtalented/repositories/cplusplus/mywebsite/db/:/db/
+        container_name: logstash
+        hostname: logstash
+        restart: always
+        environment:
+            - "LS_JAVA_OPTS=-Xms150m -Xmx150m"
+            - "xpack.monitoring.enabled=true"
+        ports:
+            - "5044:5044"
+            - "9600:9600"
+
