@@ -1,0 +1,65 @@
+version: '3.2'
+
+services:
+    kibanaserver:
+        image: docker.elastic.co/kibana/kibana:6.5.4
+        volumes:
+            - ./plugins:/usr/share/kibana/plugins:rw
+            - ./kibana/config:/usr/share/kibana/config:rw
+        container_name: kibana
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "2g"
+        environment:
+            SERVER_NAME: kibana
+            ELASTICSEARCH_URL: http://elasticsearch:9200
+            OPS_INTERVAL: 60000
+        ports:
+            - "5601:5601"
+        networks:
+            - elknet
+        restart: always
+    elasticsearch:
+        image: localhost:5000/myelasticsearch:v1.0
+        container_name: elasticsearch
+        environment:
+            - cluster.name=es-cluster
+            - bootstrap.memory_lock=true
+            #- "discovery.zen.ping.unicast.hosts=esmaster,es-node1,es-node2"
+            #- "node.name=master-node"
+            #- "node.master=true"
+            #- "node.data=true"
+            #- "network.host=0.0.0.0"
+            #- "http.port=9200"
+            #- "transport.tcp.port: 9300"
+            #- "discovery.zen.minimum_master_nodes=1"
+            #- "xpack.security.enabled=true"
+            - "ES_JAVA_OPTS=-Xms500m -Xmx500m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "2g"
+        volumes:
+            - ./elasticsearch/data:/usr/share/elasticsearch/data:rw
+            - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml 
+            - ./elasticsearch/config/elasticsearch.key:/usr/share/elasticsearch/config/elasticsearch.key 
+            - ./elasticsearch/config/elasticsearch.crt:/usr/share/elasticsearch/config/elasticsearch.crt 
+            - ./elasticsearch/config/ca.key:/usr/share/elasticsearch/config/ca.key 
+            - ./elasticsearch/config/ca.crt:/usr/share/elasticsearch/config/ca.crt 
+            - ./elasticsearch/backup:/backups:rw
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+        restart: always
+        networks:
+            elknet:
+                aliases:
+                    - elasticsearch
+
+networks:
+    elknet:

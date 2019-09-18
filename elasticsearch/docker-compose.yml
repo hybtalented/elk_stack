@@ -1,0 +1,70 @@
+version: '3'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.3
+    # container_name: "elasticsearch"
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "discovery.zen.ping.unicast.hosts=elasticsearch,elasticsearch2"
+      - "node.name=master-node"
+      - "node.master=true"
+      - "node.data=false"
+      - "network.host=elasticsearch"
+      - "http.port=9200"
+      - "discovery.zen.minimum_master_nodes=1"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    deploy:
+      replicas: 1
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+  elasticsearch2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.3
+    # container_name: "elasticsearch2"
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "node.name=data-node1"
+      - "discovery.zen.ping.unicast.hosts=elasticsearch,elasticsearch2"
+      - "node.master=false"
+      - "network.host=elasticsearch"
+      - "http.port=9200"
+      - "node.data=true"
+      - "discovery.zen.minimum_master_nodes=1"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+       # window: 120s # time to check failure
+      update_config:
+        parallelism: 1
+        delay: 10s
+       # order: stop-first # need version >= 3.4
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata2:/usr/share/elasticsearch/data
+    networks:
+      - esnet
+
+volumes:
+  esdata1:
+    driver: local
+  esdata2:
+    driver: local
+
+networks:
+  esnet:
